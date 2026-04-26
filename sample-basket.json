@@ -1,0 +1,24 @@
+{
+  "basket_id": "demo-basket-001",
+  "items": [
+    {
+      "line_id": "1",
+      "name": "Organic whole milk",
+      "quantity": 1,
+      "unit": "gallon"
+    },
+    {
+      "line_id": "2",
+      "name": "Bananas",
+      "quantity": 6,
+      "unit": "count"
+    },
+    {
+      "line_id": "3",
+      "name": "Large eggs",
+      "quantity": 1,
+      "unit": "dozen"
+    }
+  ]
+}
+

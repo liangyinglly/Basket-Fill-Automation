@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grocery-basket-fill"
+version = "0.1.0"
+description = "CLI-first grocery basket-fill assessment scaffold"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+
+[project.scripts]
+basket-fill = "app.cli:main"
+

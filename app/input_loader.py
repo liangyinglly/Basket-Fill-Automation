@@ -45,6 +45,8 @@ def validate_items(items: Any) -> list[BasketItemRequest]:
         line_id = str(raw_item.get("line_id", "")).strip()
         name = str(raw_item.get("name", "")).strip()
         unit = str(raw_item.get("unit", "")).strip()
+        notes_raw = raw_item.get("notes")
+        preferred_brand_raw = raw_item.get("preferred_brand")
         quantity_raw = raw_item.get("quantity")
 
         if not line_id:
@@ -70,6 +72,12 @@ def validate_items(items: Any) -> list[BasketItemRequest]:
                 name=name,
                 quantity=quantity,
                 unit=unit,
+                notes=str(notes_raw).strip() if notes_raw is not None else None,
+                preferred_brand=(
+                    str(preferred_brand_raw).strip()
+                    if preferred_brand_raw is not None
+                    else None
+                ),
             )
         )
 
@@ -97,4 +105,3 @@ def load_basket_request(path: str | Path) -> BasketRequestPayload:
         zip_code=zip_code,
         items=items,
     )
-

@@ -12,6 +12,8 @@ class BasketItemRequest:
     name: str
     quantity: float
     unit: str
+    notes: str | None = None
+    preferred_brand: str | None = None
 
 
 @dataclass(frozen=True)
@@ -21,6 +23,8 @@ class ProductCandidate:
     retailer: str
     retailer_product_id: str
     title: str
+    brand: str | None = None
+    category: str | None = None
     price_cents: int | None = None
     size_text: str | None = None
     url: str | None = None
@@ -62,4 +66,3 @@ class BasketRequestPayload:
             zip_code=zip_code,
             items=tuple(items),
         )
-

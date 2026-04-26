@@ -1,5 +1,7 @@
 {
   "basket_id": "demo-basket-001",
+  "retailer": "DemoMart",
+  "zip_code": "15213",
   "items": [
     {
       "line_id": "1",
@@ -21,4 +23,3 @@
     }
   ]
 }
-

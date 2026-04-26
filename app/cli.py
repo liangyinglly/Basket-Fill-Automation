@@ -6,6 +6,8 @@ from pathlib import Path
 
 from app.config import load_settings
 from app.db import bootstrap_database
+from app.input_loader import load_basket_request
+from app.normalize import normalize_query_string
 from app.retailer_search import search_retailer_products
 
 
@@ -34,8 +36,9 @@ def _cmd_show_config(_args: argparse.Namespace) -> int:
 
 
 def _cmd_search(args: argparse.Namespace) -> int:
-    _ = Path(args.basket_path)
-    search_retailer_products()
+    payload = load_basket_request(Path(args.basket_path))
+    normalized_queries = [normalize_query_string(item.name) for item in payload.items]
+    search_retailer_products(payload=payload, queries=normalized_queries)
     return 0
 
 
@@ -75,4 +78,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

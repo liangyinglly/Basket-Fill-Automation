@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 
+from app.ai_reranker import AIReranker
 from app.config import Settings, load_settings
 from app.db import (
     bootstrap_database,
@@ -100,6 +101,8 @@ def run_basket_fill(
     output_path: str | Path | None = None,
     max_pages: int = 2,
     settings: Settings | None = None,
+    enable_ai_reranker: bool = False,
+    ai_reranker: AIReranker | None = None,
 ) -> Path:
     """Run the full basket-fill flow and write the final output JSON report."""
     runtime_settings = settings or load_settings()
@@ -137,7 +140,12 @@ def run_basket_fill(
                     query=normalized_query,
                     max_pages=max_pages,
                 )
-                decision = choose_best_candidate(item, candidates)
+                decision = choose_best_candidate(
+                    item,
+                    candidates,
+                    enable_ai_reranker=enable_ai_reranker,
+                    ai_reranker=ai_reranker,
+                )
                 selected_candidate_id = (
                     decision.best_match.candidate.retailer_product_id
                     if decision.best_match is not None
@@ -187,4 +195,3 @@ def run_basket_fill(
     }
     output_file.write_text(json.dumps(output_payload, indent=2), encoding="utf-8")
     return output_file
-

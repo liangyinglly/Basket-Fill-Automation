@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from app.ai_reranker import AIReranker, ScoredCandidate, should_invoke_ai_reranker
 from app.models import BasketItemRequest, MatchResult, ProductCandidate
 from app.scorer import score_candidate
 
@@ -33,7 +34,11 @@ def classify_score(score: float) -> MatchStatus:
 
 
 def choose_best_candidate(
-    request: BasketItemRequest, candidates: list[ProductCandidate]
+    request: BasketItemRequest,
+    candidates: list[ProductCandidate],
+    *,
+    enable_ai_reranker: bool = False,
+    ai_reranker: AIReranker | None = None,
 ) -> DecisionResult:
     """Pick the highest scoring candidate and return decision + explanation."""
     if not candidates:
@@ -45,6 +50,7 @@ def choose_best_candidate(
         )
 
     scored = [(candidate, score_candidate(request, candidate)) for candidate in candidates]
+    scored_by_id = {candidate.retailer_product_id: breakdown for candidate, breakdown in scored}
     best_candidate, breakdown = max(
         scored,
         key=lambda item: (
@@ -54,6 +60,44 @@ def choose_best_candidate(
             item[0].retailer_product_id,
         ),
     )
+    ai_note = "ai_invoked=false reason=disabled"
+
+    if enable_ai_reranker:
+        scored_candidates = [
+            ScoredCandidate(
+                candidate=candidate,
+                score=details.total_score,
+                match_notes=details.match_notes,
+            )
+            for candidate, details in scored
+        ]
+        should_invoke, invoke_reason = should_invoke_ai_reranker(scored_candidates)
+        if not should_invoke:
+            ai_note = f"ai_invoked=false reason={invoke_reason}"
+        elif ai_reranker is None:
+            ai_note = "ai_invoked=false reason=no_reranker_configured"
+        else:
+            try:
+                outcome = ai_reranker.rerank(
+                    request=request,
+                    scored_candidates=scored_candidates,
+                )
+                ai_note = f"ai_invoked=true reason={invoke_reason} detail={outcome.reason}"
+                selected_id = outcome.selected_product_id
+                if selected_id and selected_id in scored_by_id:
+                    selected_candidate = next(
+                        candidate
+                        for candidate, _ in scored
+                        if candidate.retailer_product_id == selected_id
+                    )
+                    best_candidate = selected_candidate
+                    breakdown = scored_by_id[selected_id]
+                elif selected_id:
+                    ai_note += " fallback=unknown_selected_id"
+                else:
+                    ai_note += " fallback=no_selection"
+            except Exception as exc:  # pragma: no cover - defensive fallback path
+                ai_note = f"ai_invoked=false reason=ai_error_fallback detail={type(exc).__name__}"
 
     status = classify_score(breakdown.total_score)
     if status == "unmatched":
@@ -61,7 +105,7 @@ def choose_best_candidate(
             status=status,
             best_match=None,
             best_score=breakdown.total_score,
-            match_notes=f"Unmatched: {breakdown.match_notes}",
+            match_notes=f"Unmatched: {breakdown.match_notes}; {ai_note}",
         )
 
     result = MatchResult(
@@ -75,5 +119,5 @@ def choose_best_candidate(
         status=status,
         best_match=result,
         best_score=breakdown.total_score,
-        match_notes=breakdown.match_notes,
+        match_notes=f"{breakdown.match_notes}; {ai_note}",
     )

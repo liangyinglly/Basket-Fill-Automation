@@ -26,6 +26,11 @@ CLI-first starter project for a grocery basket-fill coding assessment.
 - Placeholder section for basket item normalization and matching pipeline.
 - Placeholder section for candidate generation and scoring.
 - Placeholder section for tie-breakers and fallback handling.
+- Optional AI reranker exists but is disabled by default.
+- AI reranker invocation rule:
+  - only when top candidate scores are close, or when all candidates are weak.
+- Decision `match_notes` always records whether AI was invoked and the reason.
+- If AI is unavailable or errors, the system falls back to deterministic ranking.
 
 ## Tradeoffs
 
@@ -36,4 +41,3 @@ CLI-first starter project for a grocery basket-fill coding assessment.
 
 - Placeholder section for batching, caching, and request minimization.
 - Placeholder section for operational and infra cost controls.
-

@@ -27,6 +27,8 @@ class ProductCandidate:
     category: str | None = None
     price_cents: int | None = None
     size_text: str | None = None
+    product_url: str | None = None
+    image_url: str | None = None
     url: str | None = None
 
 
